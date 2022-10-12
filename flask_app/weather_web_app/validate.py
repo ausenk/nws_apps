@@ -8,5 +8,5 @@ def validate_user_data(**kwargs):
             if not val:
                 return 'Password required.' 
         if param == 'email':
-            if val.find('@') != -1:
+            if val.find('@') == -1:
                 return 'Invalid email address.'

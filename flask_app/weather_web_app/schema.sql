@@ -4,10 +4,10 @@ DROP TABLE IF EXISTS post;
 CREATE TABLE user (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     username TEXT UNIQUE NOT NULL,
-    password TEXT NOT NULL, 
+    password TEXT NOT NULL,
     email TEXT NULL,
     addr TEXT NULL,
-    phone INTEGER NULL,
+    phone INTEGER NULL
 );
 
 CREATE TABLE saved_locations (
