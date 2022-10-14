@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+
+{% block header %}
+    <h1>{% block title %}Weather{% endblock %}</h1>
+    {% if g.user %}
+        <a class="action" href="{{ url_for('weather.search') }}">New</a>
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+    <article class="locations">
+        <header>
+            <div>
+                <h1>Location: {{ forecast['address'] }}</h1>
+            </div>
+        </header>
+        <p>{{ forecast['long_forecast'] | replace("\n", "<br>" | safe ) }}</p>
+    </article>
+{% endblock %}

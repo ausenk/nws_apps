@@ -5,6 +5,8 @@ from flask import (
 from werkzeug.security import check_password_hash, generate_password_hash
 from weather_web_app.db import get_db
 from .validate import validate_user_data
+from weather_web_app.backend.weather_getter import WeatherGetter
+from weather_web_app.backend.geo_coder import GeoCoder, ReverseGeoCoder
 
 bp = Blueprint('auth', __name__, url_prefix='/auth')
 
@@ -16,18 +18,28 @@ def register():
             'username' : request.form['username'],
             'password' : request.form['password'],
             'email' : request.form['email'],
-            'addr' : request.form['addr'],
             'phone' : request.form['phone'],
+            'addr' : request.form['addr'],
         }
         db = get_db()
         error = None
         # Validate the input data
         error = validate_user_data(**user_info)
+
+        coordinates = GeoCoder(user_info["addr"])
+        weather_station = WeatherGetter(coordinates)
+        points = weather_station.GetNwsOfficeUsingCoords()
+
         if error is None:
             try:
                 db.execute(
-                    "INSERT INTO user (username, password, email, addr, phone) VALUES (?, ?, ?, ?, ?)",
-                    (user_info['username'], generate_password_hash(user_info['password']), user_info['email'], user_info['addr'], user_info['phone'])
+                    "INSERT INTO user (username, password, email, phone, user_addr, \
+                        user_latitude, user_longitude, user_office, user_gridx, user_gridy)\
+                             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                    (user_info['username'], generate_password_hash(user_info['password']),\
+                        user_info['email'], user_info['phone'], user_info['addr'],\
+                            coordinates["lat"], coordinates["long"], points["properties"]["gridId"], \
+                                points["properties"]["gridX"], points["properties"]["gridY"])
                 )
                 db.commit()
             except db.IntegrityError:
@@ -60,7 +72,7 @@ def login():
             session.clear()
             session['user_id'] = user['id']
             session['email'] = user['email']
-            session['addr'] = user['addr']
+            session['addr'] = user['user_addr']
             session['phone'] = user['phone']
             return redirect(url_for('index'))
 
