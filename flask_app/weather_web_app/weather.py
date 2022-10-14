@@ -13,11 +13,12 @@ bp = Blueprint("weather", __name__)
 def index():
     db = get_db()
     locale = db.execute(
-        'SELECT MAX(id) location_address, office, gridx, gridy'
+        'SELECT MAX(id), location_address, office, gridx, gridy'
         ' FROM locations'
+        ' LIMIT 1'
     ).fetchone()
 
-    if locale == None:
+    if locale == None or locale["office"] == None:
         coordinates = {
             "lat": 33.9011,
             "long": -117.5179,
