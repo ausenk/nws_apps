@@ -5,7 +5,7 @@ from flask import (
 from werkzeug.security import check_password_hash, generate_password_hash
 from weather_web_app.db import get_db
 from .validate import validate_user_data
-from weather_web_app.backend.weather_getter import WeatherGetter
+from weather_web_app.backend.nws_weather import NwsWeather
 from weather_web_app.backend.geo_coder import GeoCoder, ReverseGeoCoder
 
 bp = Blueprint('auth', __name__, url_prefix='/auth')

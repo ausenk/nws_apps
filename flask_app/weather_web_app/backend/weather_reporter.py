@@ -1,5 +1,5 @@
 ''' Calls into weather getter and reports back weather to user'''
-from weather_web_app.backend.weather_getter import WeatherGetter
+from weather_web_app.backend.nws_weather import WeatherGetter
 from weather_web_app.backend.geo_coder import GeoCoder
 
 def ParseNwsForcast(forecast: dict):

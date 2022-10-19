@@ -26,7 +26,7 @@ class WeatherGetter:
 
         return self.__ApiCall(url, headers)
 
-    def GetNwsWeather(self):
+    def GetDailyNwsWeather(self):
         points = self.__GetNwsPoints()
 
         office = points["properties"]["gridId"]
@@ -34,6 +34,21 @@ class WeatherGetter:
         gridY = points["properties"]["gridY"]
 
         url = f"https://api.weather.gov/gridpoints/{office}/{gridX},{gridY}/forecast"
+
+        headers = {
+            "User-Agent": "(weather_getter, ausenkyle@gmail.com)"
+        }
+
+        return self.__ApiCall(url, headers) 
+
+    def GetHourlyNwsWeather(self):
+        points = self.__GetNwsPoints()
+
+        office = points["properties"]["gridId"]
+        gridX = points["properties"]["gridX"]
+        gridY = points["properties"]["gridY"]
+
+        url = f"https://api.weather.gov/gridpoints/{office}/{gridX},{gridY}/forecast/hourly"
 
         headers = {
             "User-Agent": "(weather_getter, ausenkyle@gmail.com)"

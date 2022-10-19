@@ -8,6 +8,15 @@
   <form method="post">
     <label for="locale">Location</label>
     <input name="locale" id="locale" value="{{ request.form['locale'] }}" required>
-    <input type="submit" value="Search">
+    <input type="submit" value="Submit">
+  
+    <label for="locale">Saved Locations</label>
+    <!-- <input name="locale" id="locale" value="{{ request.form['locale'] }}" required> -->
+  
+    {% for location in locale %}
+      <ul>
+        <a class="action" href="{{ url_for('weather.index') }}" value="{{ request.form['locale'] }}"> {{ location["location_address"] }} </a>
+      </ul>
+    {% endfor%}
   </form>
 {% endblock %}

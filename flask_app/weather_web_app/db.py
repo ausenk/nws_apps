@@ -1,6 +1,8 @@
 import sqlite3
 import click
 from flask import current_app, g
+from weather_web_app.backend.nws_weather import NwsWeather
+from weather_web_app.backend.geo_coder import GeoCoder, ReverseGeoCoder
 
 def get_db():
     if 'db' not in g:
@@ -25,6 +27,18 @@ def init_db():
 
     with current_app.open_resource('schema.sql') as f:
         db.executescript(f.read().decode('utf8'))
+    
+    address = "1325 East West Highway Silver Spring, MD 20910"
+    coordinates = GeoCoder(address)
+    weather_station = NwsWeather(None, coordinates)
+    points = weather_station.GetNwsOfficeUsingCoords()
+    db.execute(
+        'INSERT INTO locations (location_address, latitude, longitude, office, gridx, gridy)'
+        ' VALUES (?, ?, ?, ?, ?, ?)',
+        (address, coordinates["lat"], coordinates["long"], points["properties"]["gridId"],\
+                points["properties"]["gridX"], points["properties"]["gridY"])
+    )
+    db.commit()
 
 
 @click.command('init-db')

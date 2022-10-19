@@ -2,7 +2,20 @@
 from weather_getter import WeatherGetter
 from geo_coder import GeoCoder
 
-def ParseNwsForcast(forecast: dict):
+def ParseDailyNwsForcast(forecast: dict):
+    periods = forecast["properties"]["periods"]
+    for period in periods:
+        forecast_str = f"""
+        {period["name"]} from {period["startTime"]} to {period["endTime"]}
+        Forecast: {period["detailedForecast"]}
+        Temperature: {period["temperature"]} {period["temperatureUnit"]}
+        Wind Speed: {period["windSpeed"]}
+        Wind Direction: {period["windDirection"]}"""
+
+        print(forecast_str)
+        print()
+
+def ParseHourlyNwsForcast(forecast: dict):
     periods = forecast["properties"]["periods"]
     for period in periods:
         forecast_str = f"""
@@ -36,8 +49,8 @@ def WeatherReporter():
     }
 
     weather_station = WeatherGetter(location)
-    forecast = weather_station.GetNwsWeather()
-    ParseNwsForcast(forecast)
+    forecast = weather_station.GetHourlyNwsWeather()
+    ParseHourlyNwsForcast(forecast)
     return
 
 WeatherReporter()

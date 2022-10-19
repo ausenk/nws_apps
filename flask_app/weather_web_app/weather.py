@@ -4,7 +4,7 @@ from flask import(
 from werkzeug.exceptions import abort
 from weather_web_app.auth import login_required
 from weather_web_app.db import get_db
-from weather_web_app.backend.weather_getter import WeatherGetter, ParseNwsForcast
+from weather_web_app.backend.nws_weather import NwsWeather
 from weather_web_app.backend.geo_coder import GeoCoder, ReverseGeoCoder
 
 bp = Blueprint("weather", __name__)
@@ -12,36 +12,26 @@ bp = Blueprint("weather", __name__)
 @bp.route('/')
 def index():
     db = get_db()
-    locale = db.execute(
+    nws_office = db.execute(
         'SELECT MAX(id), location_address, office, gridx, gridy'
         ' FROM locations'
-        ' LIMIT 1'
     ).fetchone()
 
-    if locale == None or locale["office"] == None:
-        coordinates = {
-            "lat": 33.9011,
-            "long": -117.5179,
-        }
-        address = ReverseGeoCoder(coordinates)
-        weather_station = WeatherGetter(coordinates)
-        response = weather_station.GetNwsWeatherUsingCoords()
-    else:
-        office = {
-            "office" : locale["office"],
-            "gridx" : locale["gridx"],
-            "gridy" : locale["gridy"]
-        }
-        address = locale["location_address"]
-        weather_station = WeatherGetter(office)
-        response = weather_station.GetNwsWeatherUsingOffice()
-    
+    office = {
+        "gridId" : nws_office["office"],
+        "gridX" : nws_office["gridx"],
+        "gridY" : nws_office["gridy"]
+    }
+    address = nws_office["location_address"]
+    weather_station = NwsWeather(office, None)
+    response = weather_station.GetNwsWeather()
+
     forecast = {
         "address" : address,
-        "long_forecast" : ParseNwsForcast(response)
+        "forecast" : response
     }
 
-    return render_template('weather/index.html', forecast=forecast)
+    return render_template('weather/index.html')#, forecast=forecast)
 
 
 @bp.route('/search', methods=('GET', 'POST'))
@@ -55,7 +45,7 @@ def search():
             error = 'Location is required.'
 
         coordinates = GeoCoder(locale)
-        weather_station = WeatherGetter(coordinates)
+        weather_station = NwsWeather(coordinates)
         points = weather_station.GetNwsOfficeUsingCoords()
 
         if error is not None:
@@ -69,9 +59,52 @@ def search():
                      points["properties"]["gridX"], points["properties"]["gridY"])
             )
             db.commit()
-            return redirect(url_for('weather.index'))
 
-    return render_template('weather/search.html')
+            forecast = {
+                "address" : locale,
+                "forecast" : points,
+                "column_names" :  ["first", "second", "third", "fourth", "fifth"],
+                "column_numbers" : [0, 2, 4, 6, 8]
+            }
+
+            return render_template('weather/index.html', forecast=forecast)
+    
+    if request.method == 'PUT':
+        locale = request.form['locale']
+        error = None
+
+        db = get_db()
+        nws_params = db.execute(
+            'SELECT office, gridy, gridx'
+            ' FROM locations'
+            ' WHERE location_address = ?', locale
+        ).fetchone()
+         
+        office = {
+            "office" : nws_params["office"],
+            "gridx" : nws_params["gridx"],
+            "gridy" : nws_params["gridy"]
+        }
+        weather_station = NwsWeather(office)
+        response = weather_station.GetNwsWeather()
+
+        forecast = {
+            "address" : locale,
+            "forecast" : response,
+            "column_names" :  ["first", "second", "third", "fourth", "fifth"],
+            "column_numbers" : [0, 2, 4, 6, 8]
+        }
+
+        return redirect(url_for('weather.index'), forecast=forecast)
+
+
+    db = get_db()
+    locale = db.execute(
+        'SELECT location_address'
+        ' FROM locations'
+    ).fetchall()
+
+    return render_template('weather/search.html', locale=locale)
 
 
 @bp.route('/update')
