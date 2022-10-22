@@ -1,6 +1,5 @@
 import requests, json
-
-API_KEY = 'AIzaSyCdef3DwKdvBXru6-4inxQdgSOc9lFr-0M'
+from api_key import API_KEY
 
 class GoogleDirections():
     def __init__(self, trip):
