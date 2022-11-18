@@ -39,6 +39,6 @@ locations, times = GetRouteTimes(route, departure_time)
   
 k = 0
 weather = [None] * len(locations)
-for location, time in locations, times:
+for location, time in zip(locations, times):
     weather[k] = GetNwsWeatherTime(location, time)
     k = k + 1
